@@ -35,8 +35,7 @@ class SweContext:
 
     def _load_context(self):
         if not os.path.exists(self.context_path):
-            print("Run 'swe init' first.")
-            return None
+            self.init()
         with open(self.context_path, "r") as f:
             return json.load(f)
 
