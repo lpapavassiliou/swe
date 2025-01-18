@@ -6,6 +6,21 @@ class SweContext:
         # Store the .swe folder in the user's home directory
         self.swe_dir = os.path.join(os.path.expanduser("~"), ".swe")
         self.context_path = os.path.join(self.swe_dir, "context.json")
+        self.ignore_path = os.path.join(self.swe_dir, ".sweignore")
+        self.default_ignores = [
+            ".git/",
+            "__pycache__/",
+            "*.pyc",
+            ".DS_Store",
+            "node_modules/",
+            "venv/",
+            ".env/",
+            ".idea/",
+            ".vscode/",
+            "dist/",
+            ".gitignore",
+            "poetry.lock",
+        ]
 
     def init(self):
         if not os.path.exists(self.swe_dir):
@@ -13,6 +28,9 @@ class SweContext:
         if not os.path.exists(self.context_path):
             with open(self.context_path, "w") as f:
                 json.dump({"context": []}, f)
+        if not os.path.exists(self.ignore_path):
+            with open(self.ignore_path, "w") as f:
+                f.write("\n".join(self.default_ignores))
         print(f"Initialized global .swe folder at {self.swe_dir}")
 
     def _load_context(self):
@@ -36,35 +54,62 @@ class SweContext:
         except (UnicodeDecodeError, IOError, OSError):
             return False
 
-    def add(self, path):
-            if not os.path.exists(path):
-                print(f"Path {path} does not exist.")
-                return
+    def _should_ignore(self, path):
+        """Check if a path should be ignored based on .sweignore rules."""
+        try:
+            with open(self.ignore_path, 'r') as f:
+                ignore_patterns = [p.strip() for p in f.readlines() if p.strip() and not p.startswith('#')]
+        except FileNotFoundError:
+            ignore_patterns = self.default_ignores
+
+        norm_path = os.path.normpath(path)
+        
+        for pattern in ignore_patterns:
+            # Remove trailing slash for directory patterns
+            if pattern.endswith('/'):
+                pattern = pattern[:-1]
             
-            data = self._load_context()
-            if data is None:
-                return
-                
-            if os.path.isfile(path):
-                rel_path = os.path.relpath(path)
-                if rel_path not in data["context"] and self._is_readable_file(path):
-                    data["context"].append(rel_path)
-                    self._save_context(data)
-                    print(f"Added {rel_path} to context.")
-            else:  # It's a directory
-                added_files = 0
-                for root, _, files in os.walk(path):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        rel_path = os.path.relpath(file_path)
+            # Simple wildcard matching
+            if pattern.startswith('*'):
+                if norm_path.endswith(pattern[1:]):
+                    return True
+            elif pattern in norm_path:
+                return True
+        
+        return False
+
+    def add(self, path):
+        if not os.path.exists(path):
+            print(f"Path {path} does not exist.")
+            return
+        
+        data = self._load_context()
+        if data is None:
+            return
+            
+        if os.path.isfile(path):
+            rel_path = os.path.relpath(path)
+            if rel_path not in data["context"] and self._is_readable_file(path):
+                data["context"].append(rel_path)
+                self._save_context(data)
+                print(f"Added {rel_path} to context.")
+        else:  # It's a directory
+            added_files = 0
+            for root, _, files in os.walk(path):
+                if self._should_ignore(root):
+                    continue
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(file_path)
+                    if not self._should_ignore(rel_path):
                         if rel_path not in data["context"] and self._is_readable_file(file_path):
                             data["context"].append(rel_path)
                             added_files += 1
-                if added_files > 0:
-                    self._save_context(data)
-                    print(f"Added {added_files} files from {path} to context.")
-                else:
-                    print(f"No new files found in {path}.")
+            if added_files > 0:
+                self._save_context(data)
+                print(f"Added {added_files} files from {path} to context.")
+            else:
+                print(f"No new files found in {path}.")
 
     def remove(self, path):
         data = self._load_context()
