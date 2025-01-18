@@ -41,7 +41,8 @@ class SweAsk:
         context_content = ""
         for file in data["context"]:
             try:
-                print(f"Reading file: {file}")
+                if verbose:
+                    print(f"Reading file: {file}")
                 with open(file, "r") as f:
                     file_content = f.read()
                     context_content += f"\n\n### File: {file}\n\n{file_content}\n"
