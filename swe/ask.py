@@ -15,7 +15,7 @@ class SweAsk:
         self.swe_context = swe_context
         self.llm = ChatOpenAI(model="gpt-4", temperature=0)
 
-    def ask(self, question: str, verbose: bool = True):
+    def ask(self, question: str, verbose: bool = False):
         # Load the context
         data = self.swe_context._load_context()
         if data is None or not data.get("context"):

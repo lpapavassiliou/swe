@@ -15,6 +15,7 @@ def main():
     ask_parser.add_argument("question", help="Question to ask using context")
     subparsers.add_parser("list", help="List all files in context")
     subparsers.add_parser("clear", help="Remove all files from context")
+    ask_parser.add_argument("--verbose", action="store_true", help="Print verbose output")
 
     args = parser.parse_args()
 
@@ -28,7 +29,7 @@ def main():
     elif args.command == "rm":
         swe_context.remove(args.file)
     elif args.command == "ask":
-        swe_ask.ask(args.question)
+        swe_ask.ask(args.question, args.verbose)
     elif args.command == "list":
         swe_context.list()
     elif args.command == "clear":
