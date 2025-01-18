@@ -9,6 +9,7 @@ Swe is a coding agent that manages context and answers questions using Language 
 - Initialize a global .swe folder in the user's home directory.
 - List all files in the current context.
 - Clear all files from the current context.
+- Uninstall the SWE coding agent.
 
 ## Installation
 
@@ -59,6 +60,12 @@ swe list
 
 ```bash
 swe clear
+```
+
+- Uninstall the SWE coding agent:
+
+```bash
+swe uninstall
 ```
 
 ## Testing

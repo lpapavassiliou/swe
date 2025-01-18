@@ -20,7 +20,6 @@ class SweAsk:
         data = self.swe_context._load_context()
         if data is None or not data.get("context"):
             print("No context files available. Use 'swe add <file>' to add files.")
-            return
 
         # Read content from all context files
         context_content = ""

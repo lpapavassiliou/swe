@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 
 class SweContext:
     def __init__(self):
@@ -32,7 +33,7 @@ class SweContext:
         if not os.path.exists(self.ignore_path):
             with open(self.ignore_path, "w") as f:
                 f.write("\n".join(self.default_ignores))
-        print(f"Initialized global .swe folder at {self.swe_dir}")
+        print(f"🎉 Initialized SWE coding agent.")
 
     def _load_context(self):
         if not os.path.exists(self.context_path):
@@ -156,3 +157,10 @@ class SweContext:
         print("In context:")
         for file in data["context"]:
             print(file)
+
+    def uninstall(self):
+        if os.path.exists(self.swe_dir):
+            shutil.rmtree(self.swe_dir)
+            print(f"✅ Uninstalled SWE coding agent.")
+        else:
+            print("SWE coding agent is not installed.")
