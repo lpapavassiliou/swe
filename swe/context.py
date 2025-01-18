@@ -3,7 +3,8 @@ import json
 
 class SweContext:
     def __init__(self):
-        self.swe_dir = ".swe"
+        # Store the .swe folder in the user's home directory
+        self.swe_dir = os.path.join(os.path.expanduser("~"), ".swe")
         self.context_path = os.path.join(self.swe_dir, "context.json")
 
     def init(self):
@@ -12,7 +13,7 @@ class SweContext:
         if not os.path.exists(self.context_path):
             with open(self.context_path, "w") as f:
                 json.dump({"context": []}, f)
-        print("Initialized .swe folder.")
+        print(f"Initialized global .swe folder at {self.swe_dir}")
 
     def _load_context(self):
         if not os.path.exists(self.context_path):
