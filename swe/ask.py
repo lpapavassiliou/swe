@@ -32,8 +32,8 @@ class SweAsk:
                     file_content = f.read()
                     context_content += f"\n\n### File: {file}\n\n{file_content}\n"
             except Exception as e:
-                print(f"Error reading {file}: {e}")
-                return
+                print(f"Warning: Could not read {file}, removed from context")
+                self.swe_context.remove(file)
 
         # Define a prettier prompt template
         prompt_template = ChatPromptTemplate.from_template(

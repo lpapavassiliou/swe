@@ -20,6 +20,7 @@ class SweContext:
             "dist/",
             ".gitignore",
             "poetry.lock",
+            ".pytest_cache/",
         ]
 
     def init(self):

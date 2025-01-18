@@ -61,6 +61,14 @@ swe list
 swe clear
 ```
 
+## Testing
+
+To run the tests, use the following command:
+
+```bash
+poetry run pytest tests/
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

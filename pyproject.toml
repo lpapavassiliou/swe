@@ -11,9 +11,13 @@ python = "^3.11"
 langchain = "^0.3.14"
 langchain-openai = "^0.3.0"
 openai = "^1.59.8"
+pathspec = "^0.12.1"
 
 [tool.poetry.scripts]
 swe = "swe.cli:main"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
