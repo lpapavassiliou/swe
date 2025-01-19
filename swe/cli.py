@@ -9,9 +9,9 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
 
     subparsers.add_parser("init")
-    add_parser = subparsers.add_parser("add")
-    add_parser.add_argument("file", help="File to add to context")
-    forget_parser = subparsers.add_parser("rm")
+    look_parser = subparsers.add_parser("look")  # Renamed from "add"
+    look_parser.add_argument("file", help="File to add to context")
+    forget_parser = subparsers.add_parser("forget")  # Renamed from "rm"
     forget_parser.add_argument("file", help="File to remove from context")
     ask_parser = subparsers.add_parser("ask")
     ask_parser.add_argument("question", help="Question to ask using context")
@@ -33,19 +33,19 @@ def main():
 
     if args.command == "init":
         swe_context.init()
-    elif args.command == "add":
-        swe_context.add(args.file)
-    elif args.command == "rm":
-        swe_context.remove(args.file)
+    elif args.command == "look":  # Changed from "add"
+        swe_context.add_file(args.file)
+    elif args.command == "forget":  # Changed from "rm"
+        swe_context.remove_file(args.file)
     elif args.command == "ask":
         swe_ask.ask(args.question, args.verbose)
     elif args.command == "context":
-        swe_context.list_context()
-    elif args.command == "clear":
-        swe_context.forget_all()
+        swe_context.show_context()
+    elif args.command == "forget_all":
+        swe_context.remove_all_files()
     elif args.command == "uninstall":
         swe_context.uninstall()
-    elif args.command == "new":  # Handle new command
+    elif args.command == "clear":  # Handle new command
         swe_context.clear_conversation()
     elif args.command == "implement":
         swe_implement.implement(args.question, args.verbose)

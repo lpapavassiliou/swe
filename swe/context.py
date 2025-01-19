@@ -113,7 +113,7 @@ class SweContext:
         except IOError as e:
             print(f"Error saving chat history: {e}")
 
-    def add(self, path: str) -> None:
+    def add_file(self, path: str) -> None:
         if not os.path.exists(path):
             print(f"Path {path} does not exist.")
             return
@@ -146,7 +146,7 @@ class SweContext:
             else:
                 print(f"No new files found in {path}.")
 
-    def remove(self, path: str) -> None:
+    def remove_file(self, path: str) -> None:
         data = self._load_context()
         if data is None:
             return
@@ -172,7 +172,7 @@ class SweContext:
             else:
                 print(f"No files from {norm_path} were in context.")
 
-    def forget_all(self) -> None:
+    def remove_all_files(self) -> None:
         data = self._load_context()
         if data is None:
             return
@@ -180,7 +180,7 @@ class SweContext:
         self._save_context(data)
         print("All files removed from context.")
 
-    def list_context(self) -> None:
+    def show_context(self) -> None:
         self._display_token_usage()
         data = self._load_context()
         if data is None:
@@ -245,7 +245,7 @@ class SweContext:
         try:
             if os.path.exists(self.chat_file):
                 os.remove(self.chat_file)
-            print("Conversation history cleared.")
+            os.system("clear")
         except IOError as e:
             print(f"Error clearing conversation history: {e}")
 
