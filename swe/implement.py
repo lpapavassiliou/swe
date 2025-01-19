@@ -3,6 +3,11 @@ import os
 from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from typing import List, Dict
+from pydantic import BaseModel
+
+class ImplementResponse(BaseModel):
+    file: str
+    content: str
 
 class SweImplement:
 
@@ -27,7 +32,7 @@ class SweImplement:
                 json.dump(chat_history, f, indent=4)
         except IOError as e:
             print(f"Error saving chat history: {e}")
-            
+
     def _get_context_content(self, verbose: bool = False) -> str:
         data = self.swe_context._load_context()
         if data is None or not data.get("context"):
@@ -59,8 +64,11 @@ class SweImplement:
             "{context}\n\n"
             "The following is the conversation so far:\n\n"
             "{history}\n\n"
-            "Using this information, address the following request as concisely as possible:\n\nREQUEST: {question}"
-            "The response should be a JSON object with the following fields: 'file' (the path to the file to be implemented), 'content' (the content to be implemented in the file)."
+            "Using this information, address the following request:\n\nREQUEST: {question}"
+            "The response should be a JSON object with the following fields: "
+            "'file' (the path to the file to be implemented), "
+            "'content' (the new version of the file content - the whole file!)."
+            "The response should suggest a single file to be edited. You will get the change to implement other files later."
         )
 
         chain = prompt_template | self.llm
@@ -87,9 +95,9 @@ class SweImplement:
             print(f"Error generating response: {e}")
 
         try:
-            response_json = json.loads(response)
-            file_path = response_json.get('file')
-            content = response_json.get('content')
+            implement_response = ImplementResponse.model_validate_json(response)
+            file_path = implement_response.file
+            content = implement_response.content
             if file_path and content:
                 with open(file_path, 'w') as f:
                     f.write(content)
