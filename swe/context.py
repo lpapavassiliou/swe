@@ -1,10 +1,10 @@
-import os
 import json
+import os
 import shutil
+from typing import List, Dict, Optional
 
 class SweContext:
     def __init__(self):
-        # Store the .swe folder in the user's home directory
         self.swe_dir = os.path.join(os.path.expanduser("~"), ".swe")
         self.context_path = os.path.join(self.swe_dir, "context.json")
         self.ignore_path = os.path.join(self.swe_dir, ".sweignore")
@@ -24,9 +24,8 @@ class SweContext:
             ".pytest_cache/",
         ]
 
-    def init(self):
-        if not os.path.exists(self.swe_dir):
-            os.makedirs(self.swe_dir)
+    def init(self) -> None:
+        os.makedirs(self.swe_dir, exist_ok=True)
         if not os.path.exists(self.context_path):
             with open(self.context_path, "w") as f:
                 json.dump({"context": []}, f)
@@ -35,28 +34,25 @@ class SweContext:
                 f.write("\n".join(self.default_ignores))
         print(f"🎉 Initialized SWE coding agent.")
 
-    def _load_context(self):
+    def _load_context(self) -> Optional[Dict[str, List[str]]]:
         if not os.path.exists(self.context_path):
             self.init()
         with open(self.context_path, "r") as f:
             return json.load(f)
 
-    def _save_context(self, data):
+    def _save_context(self, data: Dict[str, List[str]]) -> None:
         with open(self.context_path, "w") as f:
             json.dump(data, f)
 
-    def _is_readable_file(self, file_path):
-        """Check if the file exists and is readable."""
+    def _is_readable_file(self, file_path: str) -> bool:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                # Try to read a small chunk to verify it's readable text
                 f.read(1024)
                 return True
         except (UnicodeDecodeError, IOError, OSError):
             return False
 
-    def _should_ignore(self, path):
-        """Check if a path should be ignored based on .sweignore rules."""
+    def _should_ignore(self, path: str) -> bool:
         try:
             with open(self.ignore_path, 'r') as f:
                 ignore_patterns = [p.strip() for p in f.readlines() if p.strip() and not p.startswith('#')]
@@ -66,11 +62,9 @@ class SweContext:
         norm_path = os.path.normpath(path)
         
         for pattern in ignore_patterns:
-            # Remove trailing slash for directory patterns
             if pattern.endswith('/'):
                 pattern = pattern[:-1]
             
-            # Simple wildcard matching
             if pattern.startswith('*'):
                 if norm_path.endswith(pattern[1:]):
                     return True
@@ -79,7 +73,7 @@ class SweContext:
         
         return False
 
-    def add(self, path):
+    def add(self, path: str) -> None:
         if not os.path.exists(path):
             print(f"Path {path} does not exist.")
             return
@@ -94,7 +88,7 @@ class SweContext:
                 data["context"].append(rel_path)
                 self._save_context(data)
                 print(f"Added {rel_path} to context.")
-        else:  # It's a directory
+        else:
             added_files = 0
             for root, _, files in os.walk(path):
                 if self._should_ignore(root):
@@ -112,26 +106,22 @@ class SweContext:
             else:
                 print(f"No new files found in {path}.")
 
-    def remove(self, path):
+    def remove(self, path: str) -> None:
         data = self._load_context()
         if data is None:
             return
             
-        # Normalize the input path
         norm_path = os.path.normpath(path)
         
         if os.path.isfile(norm_path):
-            # Handle single file removal
             if norm_path in data["context"]:
                 data["context"].remove(norm_path)
                 self._save_context(data)
                 print(f"Removed {norm_path} from context.")
             else:
                 print(f"File {norm_path} not in context.")
-        else:  # It's a directory
-            # Remove all files that start with this directory path
+        else:
             original_count = len(data["context"])
-            # Normalize all paths in context for comparison
             data["context"] = [f for f in data["context"] 
                              if not os.path.normpath(f).startswith(norm_path)]
             removed_files = original_count - len(data["context"])
@@ -142,7 +132,7 @@ class SweContext:
             else:
                 print(f"No files from {norm_path} were in context.")
 
-    def forget_all(self):
+    def forget_all(self) -> None:
         data = self._load_context()
         if data is None:
             return
@@ -150,14 +140,14 @@ class SweContext:
         self._save_context(data)
         print("All files removed from context.")
 
-    def list_context(self):
+    def list_context(self) -> None:
         data = self._load_context()
         if data is None:
             return
         for file in data["context"]:
             print(f"    +  {file}")
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         if os.path.exists(self.swe_dir):
             shutil.rmtree(self.swe_dir)
             print(f"✅ Uninstalled SWE coding agent.")

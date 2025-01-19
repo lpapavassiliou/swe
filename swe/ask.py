@@ -1,18 +1,19 @@
-from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 import json
 import os
+from typing import List, Dict, Optional
+
+from langchain.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
 
 class SweAsk:
     def __init__(self, swe_context):
         self.swe_context = swe_context
         self.llm = ChatOpenAI(model="gpt-4", temperature=0)
         self.chat_file = os.path.join(os.path.expanduser("~"), ".swe", "chat.json")
-        # Ensure the directory exists
         os.makedirs(os.path.dirname(self.chat_file), exist_ok=True)
 
-    def _load_chat_history(self):
-        """Load existing chat history from the chat.json file."""
+    def _load_chat_history(self) -> List[Dict[str, str]]:
         if os.path.exists(self.chat_file):
             try:
                 with open(self.chat_file, 'r') as f:
@@ -21,23 +22,19 @@ class SweAsk:
                 print("Warning: Could not read or parse chat history. Starting fresh.")
         return []
 
-    def _save_chat_history(self, chat_history):
-        """Save chat history to the chat.json file."""
+    def _save_chat_history(self, chat_history: List[Dict[str, str]]) -> None:
         try:
             with open(self.chat_file, 'w') as f:
                 json.dump(chat_history, f, indent=4)
         except IOError as e:
             print(f"Error saving chat history: {e}")
 
-    def ask(self, question: str, verbose: bool = False):
-        user_message = {"role": "user", "content": question}
-
-        # Load the context
+    def _get_context_content(self, verbose: bool = False) -> str:
         data = self.swe_context._load_context()
         if data is None or not data.get("context"):
             print("No context files available. Use 'swe add <file>' to add files.")
+            return ""
 
-        # Read content from all context files
         context_content = ""
         for file in data["context"]:
             try:
@@ -49,18 +46,16 @@ class SweAsk:
             except Exception as e:
                 print(f"Warning: Could not read {file}, removed from context.")
                 self.swe_context.remove(file)
+        return context_content
 
-        # Load existing chat history
+    def ask(self, question: str, verbose: bool = False) -> None:
+        user_message = {"role": "user", "content": question}
+
+        context_content = self._get_context_content(verbose)
         chat_history = self._load_chat_history()
 
-        # Format chat history as part of the prompt
-        formatted_history = ""
-        for msg in chat_history:
-            role = msg["role"].capitalize()
-            content = msg["content"]
-            formatted_history += f"{role}: {content}\n"
+        formatted_history = "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
 
-        # Define a prettier prompt template with chat history included
         prompt_template = ChatPromptTemplate.from_template(
             "You are a helpful coding assistant. The following are the contents of files in the current context:\n\n"
             "{context}\n\n"
@@ -69,7 +64,6 @@ class SweAsk:
             "Using this information, address the following request as concisely as possible:\n\nREQUEST: {question}"
         )
 
-        # Create the chain using the prompt and the LLM
         chain = prompt_template | self.llm
 
         if verbose:
@@ -82,7 +76,6 @@ class SweAsk:
             print(formatted_prompt)
             print("\n" + "=" * 80 + "\n")
 
-        # Run the chain
         try:
             response = chain.invoke({
                 "context": context_content,
@@ -94,11 +87,9 @@ class SweAsk:
         except Exception as e:
             print(f"Error generating response: {e}")
 
-        # Save updated chat history
         self._save_chat_history(chat_history)
 
-    def clear_conversation(self):
-        """Clear the conversation history and remove the saved chat file."""
+    def clear_conversation(self) -> None:
         try:
             if os.path.exists(self.chat_file):
                 os.remove(self.chat_file)
