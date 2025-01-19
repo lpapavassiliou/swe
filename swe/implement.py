@@ -64,11 +64,15 @@ class SweImplement:
             "{context}\n\n"
             "The following is the conversation so far:\n\n"
             "{history}\n\n"
-            "Using this information, address the following request:\n\nREQUEST: {question}"
-            "The response should be a JSON object with the following fields: "
+            "Using this information, address the following goal:\n\nGoal: {question}"
+            "You can only implement one file at a time. "
+            "The response should be a single JSON object with the following fields: "
             "'file' (the path to the file to be implemented), "
             "'content' (the new version of the file content - the whole file!)."
-            "The response should suggest a single file to be edited. You will get the change to implement other files later."
+            "You will get the change to implement other files later."
+            "Example response: 'file': 'path/to/file.py', 'content': 'print(\"Hello, world!\")'"
+            "Avoid using markdown or any other formatting. Generate the whole file content avoiding shortcuts."
+            "Do not use any other formatting or comments. You do not know how to speak English or use Markdown."
         )
 
         chain = prompt_template | self.llm
@@ -95,7 +99,7 @@ class SweImplement:
             print(f"Error generating response: {e}")
 
         try:
-            implement_response = ImplementResponse.model_validate_json(response)
+            implement_response = ImplementResponse.model_validate_json(response.content)
             file_path = implement_response.file
             content = implement_response.content
             if file_path and content:
