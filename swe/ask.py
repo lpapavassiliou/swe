@@ -43,7 +43,10 @@ class SweAsk:
                 with open(file, "r") as f:
                     file_content = f.read()
                     context_content += f"\n\n### File: {file}\n\n{file_content}\n"
-            except Exception as e:
+            print("=" * 80 + "\n")
+            formatted_prompt = prompt_template.format(
+                context=context_content, history=formatted_history, question=question
+            )
                 print(f"Warning: Could not read {file}, removed from context.")
                 self.swe_context.remove(file)
         return context_content
