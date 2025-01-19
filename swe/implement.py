@@ -27,6 +27,25 @@ class SweImplement:
                 json.dump(chat_history, f, indent=4)
         except IOError as e:
             print(f"Error saving chat history: {e}")
+            
+    def _get_context_content(self, verbose: bool = False) -> str:
+        data = self.swe_context._load_context()
+        if data is None or not data.get("context"):
+            print("No context files available. Use 'swe add <file>' to add files.")
+            return ""
+
+        context_content = ""
+        for file in data["context"]:
+            try:
+                if verbose:
+                    print(f"Reading file: {file}")
+                with open(file, "r") as f:
+                    file_content = f.read()
+                    context_content += f"\n\n### File: {file}\n\n{file_content}\n"
+            except Exception as e:
+                print(f"Warning: Could not read {file}, removed from context.")
+                self.swe_context.remove(file)
+        return context_content
 
     def implement(self, question: str, verbose: bool = False) -> None:
         context_content = self._get_context_content(verbose)
