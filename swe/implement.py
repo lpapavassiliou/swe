@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class ImplementResponse(BaseModel):
     file: str
     content: str
+    next_file_to_implement: str
 
 class SweImplement:
 
@@ -60,20 +61,31 @@ class SweImplement:
         formatted_history = "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
 
         prompt_template = ChatPromptTemplate.from_template(
-            "You are a helpful coding assistant. The following are the contents of files in the current project:\n\n"
+            "You are a highly skilled coding assistant. Below are the contents of the files in the current project:\n\n"
             "{context}\n\n"
-            "The following is the conversation so far:\n\n"
+            "Here is the conversation history so far:\n\n"
             "{history}\n\n"
-            "Using this information, address the following goal:\n\nGoal: {question}"
-            "You can only implement one file at a time. "
-            "The response should be a single JSON object with the following fields: "
-            "'file' (the path to the file to be implemented), "
-            "'content' (the new version of the file content - the whole file!)."
-            "You will get the change to implement other files later."
-            "Example response: 'file': 'path/to/file.py', 'content': 'print(\"Hello, world!\")'"
-            "Avoid using markdown or any other formatting. Generate the whole file content avoiding shortcuts."
-            "Do not use any other formatting or comments. You do not know how to speak English or use Markdown."
+            "Your task is to achieve the following goal:\n\nGoal: {question}\n\n"
+            "Please follow these rules when providing your response:\n"
+            "1. You can only implement one file at a time.\n"
+            "2. Your response must be a single valid JSON object with the following fields:\n"
+            "   - 'file': The path to the file being implemented.\n"
+            "   - 'content': The complete content of the file being implemented (no partial content or shortcuts).\n"
+            "   - 'next_file_to_implement': The path to the next file to be implemented, or 'None' if no further files are needed.\n\n"
+            "Here is an example of a valid response:\n"
+            "{{\n"
+            "    'file': 'path/to/file.py',\n"
+            "    'content': 'print(\"Hello, world!\")',\n"
+            "    'next_file_to_implement': 'path/to/next_file.py'\n"
+            "}}\n\n"
+            "Additional instructions:\n"
+            "- Avoid using Markdown or any additional formatting.\n"
+            "- Do not include comments or explanations in your response.\n"
+            "- Your output should strictly adhere to the JSON format provided above.\n"
+            "- Ensure the 'content' field contains the full implementation of the file.\n"
+            "- If your implementation task is complete, set 'next_file_to_implement' to 'None'."
         )
+
 
         chain = prompt_template | self.llm
 
