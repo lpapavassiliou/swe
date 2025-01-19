@@ -23,6 +23,7 @@ def main():
     implement_parser = subparsers.add_parser("implement")
     implement_parser.add_argument("question", help="Implementation request")
     implement_parser.add_argument("--verbose", action="store_true", help="Print verbose output")
+    chat_parser = subparsers.add_parser("chat", help="Print the chat history")
 
     args = parser.parse_args()
 
@@ -48,5 +49,7 @@ def main():
         swe_ask.clear_conversation()
     elif args.command == "implement":
         swe_implement.implement(args.question, args.verbose)
+    elif args.command == "chat":
+        swe_ask.print_chat()
     else:
         parser.print_help()

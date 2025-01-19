@@ -96,3 +96,8 @@ class SweAsk:
             print("Conversation history cleared.")
         except IOError as e:
             print(f"Error clearing conversation history: {e}")
+
+    def print_chat(self) -> None:
+        chat_history = self._load_chat_history()
+        for msg in chat_history:
+            print(f'{msg["role"].capitalize()}: {msg["content"]}')
