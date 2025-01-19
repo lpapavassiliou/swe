@@ -83,7 +83,7 @@ class SweImplement:
             "- Do not include comments or explanations in your response.\n"
             "- Your output should strictly adhere to the JSON format provided above.\n"
             "- Ensure the 'content' field contains the full implementation of the file.\n"
-            "- If your implementation task is complete, set 'next_file_to_implement' to 'None'."
+            "- If you already edited all the necessary files, set 'next_file_to_implement' to None."
         )
 
 
@@ -105,7 +105,6 @@ class SweImplement:
                 "history": formatted_history,
                 "question": question
             })
-            print(f"\n\n{response.content}")
             chat_history.append({'role': 'assistant', 'content': response.content})
         except Exception as e:
             print(f"Error generating response: {e}")
@@ -118,6 +117,10 @@ class SweImplement:
                 with open(file_path, 'w') as f:
                     f.write(content)
                 print(f"Implemented changes in {file_path}")
+                if implement_response.next_file_to_implement:
+                    print(f"Next file to implement: {implement_response.next_file_to_implement}")   
+                else:
+                    print("Implementation complete.")
             else:
                 print("Response does not contain 'file' and 'content' fields.")
         except json.JSONDecodeError:
