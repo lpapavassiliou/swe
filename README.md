@@ -17,6 +17,7 @@ To install Swe, follow these steps:
 
 ```bash
 conda create -n swe python=3.11
+conda activate swe
 poetry install
 poetry build
 pipx install dist/swe-0.1.0.tar.gz
@@ -35,13 +36,19 @@ swe init
 - Add a file or directory to the context:
 
 ```bash
-swe add <path>
+swe look <path>
 ```
 
 - Remove a file or directory from the context:
 
 ```bash
-swe remove <path>
+swe forget <path>
+```
+
+- Remove all files from the context:
+
+```bash
+swe forget --all
 ```
 
 - Answer a question using the context:

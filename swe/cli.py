@@ -12,7 +12,8 @@ def main():
     look_parser = subparsers.add_parser("look")  # Renamed from "add"
     look_parser.add_argument("file", help="File to add to context")
     forget_parser = subparsers.add_parser("forget")  # Renamed from "rm"
-    forget_parser.add_argument("file", help="File to remove from context")
+    forget_parser.add_argument("file", nargs='?', default=None, help="File to remove from context")
+    forget_parser.add_argument("--all", action="store_true", help="Remove all files from context")
     ask_parser = subparsers.add_parser("ask")
     ask_parser.add_argument("question", help="Question to ask using context")
     ask_parser.add_argument("--verbose", action="store_true", help="Print verbose output")
@@ -36,13 +37,16 @@ def main():
     elif args.command == "look":  # Changed from "add"
         swe_context.add_file(args.file)
     elif args.command == "forget":  # Changed from "rm"
-        swe_context.remove_file(args.file)
+        if args.all:
+            swe_context.remove_all_files()
+        elif args.file:
+            swe_context.remove_file(args.file)
+        else:
+            print("Please specify a file to remove or use --all to remove all files.")
     elif args.command == "ask":
         swe_ask.ask(args.question, args.verbose)
     elif args.command == "context":
         swe_context.show_context()
-    elif args.command == "forget_all":
-        swe_context.remove_all_files()
     elif args.command == "uninstall":
         swe_context.uninstall()
     elif args.command == "clear":  # Handle new command
