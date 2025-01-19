@@ -5,6 +5,8 @@ from langchain_openai import ChatOpenAI
 from typing import List, Dict
 from pydantic import BaseModel
 from swe.context import SweContext
+import shutil
+
 class ImplementResponse(BaseModel):
     file: str
     content: str
@@ -77,11 +79,16 @@ class SweImplement:
             file_path = implement_response.file
             content = implement_response.content
             if file_path and content:
+                # Create a backup of the file before writing
+                backup_dir = os.path.join(os.path.expanduser("~"), ".swe", "backup")
+                os.makedirs(backup_dir, exist_ok=True)
+                shutil.copy(file_path, backup_dir)
                 with open(file_path, 'w') as f:
                     f.write(content)
                 print(f"Implemented changes in {file_path}")
-                if implement_response.next_file_to_implement:
-                    print(f"Next file to implement: {implement_response.next_file_to_implement}")   
+                if implement_response.next_file_to_implement and implement_response.next_file_to_implement != "None":
+                    print(f"Next file to implement: {implement_response.next_file_to_implement}")
+                    self.implement(question)   
                 else:
                     print("Implementation complete.")
             else:
