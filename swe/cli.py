@@ -21,10 +21,10 @@ def main():
     subparsers.add_parser("clear", help="Remove all files from context")
     subparsers.add_parser("uninstall", help="Uninstall the SWE coding agent")
     subparsers.add_parser("new", help="Start a new chat")
+    subparsers.add_parser("chat", help="Print the chat history")
     implement_parser = subparsers.add_parser("implement")
     implement_parser.add_argument("question", help="Implementation request")
     implement_parser.add_argument("--verbose", action="store_true", help="Print verbose output")
-    chat_parser = subparsers.add_parser("chat", help="Print the chat history")
 
     args = parser.parse_args()
 
@@ -54,6 +54,6 @@ def main():
     elif args.command == "implement":
         swe_implement.implement(args.question, args.verbose)
     elif args.command == "chat":
-        swe_ask.print_chat()
+        swe_context.print_chat()
     else:
         parser.print_help()
