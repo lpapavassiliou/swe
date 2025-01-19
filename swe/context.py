@@ -153,3 +153,15 @@ class SweContext:
             print(f"✅ Uninstalled SWE coding agent.")
         else:
             print("SWE coding agent is not installed.")
+    def clear_conversation(self) -> None:
+        try:
+            if os.path.exists(self.chat_file):
+                os.remove(self.chat_file)
+            print("Conversation history cleared.")
+        except IOError as e:
+            print(f"Error clearing conversation history: {e}")
+
+    def print_chat(self) -> None:
+        chat_history = self._load_chat_history()
+        for msg in chat_history:
+            print(f'{msg["role"].capitalize()}: {msg["content"]}')

@@ -4,7 +4,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from typing import List, Dict
 from pydantic import BaseModel
-
+from swe.context import SweContext
 class ImplementResponse(BaseModel):
     file: str
     content: str
@@ -12,50 +12,13 @@ class ImplementResponse(BaseModel):
 
 class SweImplement:
 
-    def __init__(self, swe_context):
+    def __init__(self, swe_context: SweContext):
         self.swe_context = swe_context
         self.llm = ChatOpenAI(model="gpt-4", temperature=0)
-        self.chat_file = os.path.join(os.path.expanduser("~"), ".swe", "chat.json")
-        os.makedirs(os.path.dirname(self.chat_file), exist_ok=True)
-
-    def _load_chat_history(self) -> List[Dict[str, str]]:
-        if os.path.exists(self.chat_file):
-            try:
-                with open(self.chat_file, 'r') as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError):
-                print("Warning: Could not read or parse chat history. Starting fresh.")
-        return []
-
-    def _save_chat_history(self, chat_history: List[Dict[str, str]]) -> None:
-        try:
-            with open(self.chat_file, 'w') as f:
-                json.dump(chat_history, f, indent=4)
-        except IOError as e:
-            print(f"Error saving chat history: {e}")
-
-    def _get_context_content(self, verbose: bool = False) -> str:
-        data = self.swe_context._load_context()
-        if data is None or not data.get("context"):
-            print("No context files available. Use 'swe add <file>' to add files.")
-            return ""
-
-        context_content = ""
-        for file in data["context"]:
-            try:
-                if verbose:
-                    print(f"Reading file: {file}")
-                with open(file, "r") as f:
-                    file_content = f.read()
-                    context_content += f"\n\n### File: {file}\n\n{file_content}\n"
-            except Exception as e:
-                print(f"Warning: Could not read {file}, removed from context.")
-                self.swe_context.remove(file)
-        return context_content
 
     def implement(self, question: str, verbose: bool = False) -> None:
-        context_content = self._get_context_content(verbose)
-        chat_history = self._load_chat_history()
+        context_content = self.swe_context._get_context_content(verbose)
+        chat_history = self.swe_context._load_chat_history()
         chat_history.append({"role": "user", "content": question})
 
         formatted_history = "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
@@ -126,4 +89,4 @@ class SweImplement:
         except json.JSONDecodeError:
             print("Response is not a valid JSON.")
         
-        self._save_chat_history(chat_history)
+        self.swe_context._save_chat_history(chat_history)

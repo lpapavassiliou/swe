@@ -46,7 +46,7 @@ def main():
     elif args.command == "uninstall":
         swe_context.uninstall()
     elif args.command == "new":  # Handle new command
-        swe_ask.clear_conversation()
+        swe_context.clear_conversation()
     elif args.command == "implement":
         swe_implement.implement(args.question, args.verbose)
     elif args.command == "chat":
