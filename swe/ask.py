@@ -51,4 +51,4 @@ class SweAsk:
         except Exception as e:
             print(f"Error generating response: {e}")
 
-        self._save_chat_history(chat_history)
+        self.swe_context._save_chat_history(chat_history)
