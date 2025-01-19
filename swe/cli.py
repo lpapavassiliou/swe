@@ -1,6 +1,7 @@
 import argparse
 from swe.context import SweContext
 from swe.ask import SweAsk
+from swe.implement import SweImplement
 
 
 def main():
@@ -19,11 +20,15 @@ def main():
     subparsers.add_parser("clear", help="Remove all files from context")
     subparsers.add_parser("uninstall", help="Uninstall the SWE coding agent")
     subparsers.add_parser("new", help="Start a new chat")
+    implement_parser = subparsers.add_parser("implement")
+    implement_parser.add_argument("question", help="Implementation request")
+    implement_parser.add_argument("--verbose", action="store_true", help="Print verbose output")
 
     args = parser.parse_args()
 
     swe_context = SweContext()
     swe_ask = SweAsk(swe_context)
+    swe_implement = SweImplement(swe_context)
 
     if args.command == "init":
         swe_context.init()
@@ -41,5 +46,7 @@ def main():
         swe_context.uninstall()
     elif args.command == "new":  # Handle new command
         swe_ask.clear_conversation()
+    elif args.command == "implement":
+        swe_implement.implement(args.question, args.verbose)
     else:
         parser.print_help()
