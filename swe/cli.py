@@ -15,7 +15,7 @@ def main():
     ask_parser = subparsers.add_parser("ask")
     ask_parser.add_argument("question", help="Question to ask using context")
     ask_parser.add_argument("--verbose", action="store_true", help="Print verbose output")
-    subparsers.add_parser("list", help="List all files in context")
+    subparsers.add_parser("context", help="List all files in context")
     subparsers.add_parser("clear", help="Remove all files from context")
     subparsers.add_parser("uninstall", help="Uninstall the SWE coding agent")
     subparsers.add_parser("new", help="Start a new chat")
@@ -33,8 +33,8 @@ def main():
         swe_context.remove(args.file)
     elif args.command == "ask":
         swe_ask.ask(args.question, args.verbose)
-    elif args.command == "list":
-        swe_context.list()
+    elif args.command == "context":
+        swe_context.list_context()
     elif args.command == "clear":
         swe_context.forget_all()
     elif args.command == "uninstall":

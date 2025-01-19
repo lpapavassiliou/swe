@@ -53,7 +53,7 @@ swe ask <question>
 - List all files in the current context:
 
 ```bash
-swe list
+swe context
 ```
 
 - Clear all files from the current context:

@@ -150,13 +150,12 @@ class SweContext:
         self._save_context(data)
         print("All files removed from context.")
 
-    def list(self):
+    def list_context(self):
         data = self._load_context()
         if data is None:
             return
-        print("In context:")
         for file in data["context"]:
-            print(file)
+            print(f"    +  {file}")
 
     def uninstall(self):
         if os.path.exists(self.swe_dir):
