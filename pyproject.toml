@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swe"
-version = "0.1.0"
+version = "0.2.0"
 description = "A coding agent to manage context and answer questions using LLMs"
 authors = ["Ludovico Papavassiliou <ludo.progamer@gmail.com>"]
 license = "MIT"
