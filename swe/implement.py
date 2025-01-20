@@ -21,36 +21,21 @@ class SweImplement:
     def implement(self, question: str, verbose: bool = False) -> None:
         context_content = self.swe_context._get_context_content(verbose)
         chat_history = self.swe_context._load_chat_history()
-        chat_history.append({"role": "user", "content": question})
 
         formatted_history = "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
 
         prompt_template = ChatPromptTemplate.from_template(
-            "You are a highly skilled coding assistant. Below are the contents of the files in the current project:\n\n"
+            "You are implementing code changes one file at a time. Review the project files and conversation history:\n\n"
             "{context}\n\n"
-            "Here is the conversation history so far:\n\n"
             "{history}\n\n"
-            "Your task is to achieve the following goal:\n\nGoal: {question}\n\n"
-            "Please follow these rules when providing your response:\n"
-            "1. You can only implement one file at a time.\n"
-            "2. Your response must be a single valid JSON object with the following fields:\n"
-            "   - 'file': The path to the file being implemented.\n"
-            "   - 'content': The complete content of the file being implemented (no partial content or shortcuts).\n"
-            "   - 'next_file_to_implement': The path to the next file to be implemented, or 'None' if no further files are needed.\n\n"
-            "Here is an example of a valid response:\n"
+            "Respond ONLY with a JSON object containing:\n"
             "{{\n"
-            "    'file': 'path/to/file.py',\n"
-            "    'content': 'print(\"Hello, world!\")',\n"
-            "    'next_file_to_implement': 'path/to/next_file.py'\n"
+            '    "file": "path/to/file",           // The file to modify\n'
+            '    "content": "full file content",   // Complete file implementation\n'
+            '    "next_file_to_implement": "path"  // Next file or "None" if complete\n'
             "}}\n\n"
-            "Additional instructions:\n"
-            "- Avoid using Markdown or any additional formatting.\n"
-            "- Do not include comments or explanations in your response.\n"
-            "- Your output should strictly adhere to the JSON format provided above.\n"
-            "- Ensure the 'content' field contains the full implementation of the file.\n"
-            "- If you already edited all the necessary files, set 'next_file_to_implement' to None."
+            "GOAL: {question}\n"
         )
-
 
         chain = prompt_template | self.llm
 
@@ -72,6 +57,8 @@ class SweImplement:
             })
             chat_history.append({"role": "user", "content": question})
             chat_history.append({'role': 'assistant', 'content': response.content})
+            if verbose:
+                print(f"🤖 Assistant: {response.content}")
         except Exception as e:
             print(f"Error generating response: {e}")
 
