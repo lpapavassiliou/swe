@@ -67,12 +67,12 @@ class SweImplement:
             file_path = implement_response.file
             content = implement_response.content
             if file_path and content:
+                # Create the file if it doesn't exist
+                open(file_path, "x").close() if not os.path.exists(file_path) and file_path != "None" else None
                 # Create a backup of the file before writing
                 backup_dir = os.path.join(os.path.expanduser("~"), ".swe", "backup")
                 os.makedirs(backup_dir, exist_ok=True)
                 shutil.copy(file_path, backup_dir)
-                # Create the file if it doesn't exist
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 # Write the content to the file
                 with open(file_path, 'w') as f:
                     f.write(content)
