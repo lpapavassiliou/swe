@@ -71,12 +71,15 @@ class SweImplement:
                 backup_dir = os.path.join(os.path.expanduser("~"), ".swe", "backup")
                 os.makedirs(backup_dir, exist_ok=True)
                 shutil.copy(file_path, backup_dir)
+                # Create the file if it doesn't exist
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                # Write the content to the file
                 with open(file_path, 'w') as f:
                     f.write(content)
                 print(f"Implemented changes in {file_path}")
                 if implement_response.next_file_to_implement and implement_response.next_file_to_implement != "None":
                     print(f"Next file to implement: {implement_response.next_file_to_implement}")
-                    self.implement(question)   
+                    self.implement(question, verbose=verbose)   
                 else:
                     print("Implementation complete.")
             else:
