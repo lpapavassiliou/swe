@@ -16,22 +16,14 @@ Swe is a coding agent that manages context and answers questions using Language 
 To install Swe, follow these steps:
 
 ```bash
-conda create -n swe python=3.11
-conda activate swe
-poetry install
-poetry build
-pipx install dist/swe-0.1.0.tar.gz
+conda create -n swe-venv python=3.11
+conda activate swe-venv
+install-swe
 ```
 
 ## Usage
 
 Here are some commands you can use with Swe:
-
-- Initialize the global .swe folder in the user's home directory:
-
-```bash
-swe init
-```
 
 - Add a file or directory to the context:
 
@@ -51,6 +43,18 @@ swe rm <path>
 swe rm --all
 ```
 
+- Start a new session (clear context and start a new chat):
+
+```bash
+swe new
+```
+
+- Start a new conversation:
+
+```bash
+swe newchat
+```
+
 - Answer a question using the context:
 
 ```bash
@@ -60,7 +64,7 @@ swe ask <question>
 - List all files in the current context:
 
 ```bash
-swe context
+swe ctx
 ```
 
 - Clear all files from the current context:
@@ -69,10 +73,16 @@ swe context
 swe clear
 ```
 
+- Update the SWE coding agent:
+
+```bash
+update-swe
+```
+
 - Uninstall the SWE coding agent:
 
 ```bash
-swe uninstall
+uninstall-swe
 ```
 
 ## Testing
