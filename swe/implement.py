@@ -67,8 +67,11 @@ class SweImplement:
             file_path = implement_response.file
             content = implement_response.content
             if file_path and content:
-                # Create the file if it doesn't exist
-                open(file_path, "x").close() if not os.path.exists(file_path) and file_path != "None" else None
+                # Create subdirectories and file if they don't exist
+                if file_path != "None":
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                    if not os.path.exists(file_path):
+                        open(file_path, "x").close()
                 # Create a backup of the file before writing
                 backup_dir = os.path.join(os.path.expanduser("~"), ".swe", "backup")
                 os.makedirs(backup_dir, exist_ok=True)
@@ -78,6 +81,7 @@ class SweImplement:
                     f.write(content)
                 print(f"Implemented changes in {file_path}")
                 if implement_response.next_file_to_implement and implement_response.next_file_to_implement != "None":
+                    self.swe_context.add_file(implement_response.file)
                     print(f"Next file to implement: {implement_response.next_file_to_implement}")
                     self.implement(question, verbose=verbose)   
                 else:
