@@ -70,6 +70,7 @@ class SweImplement:
                 "history": formatted_history,
                 "question": question
             })
+            chat_history.append({"role": "user", "content": question})
             chat_history.append({'role': 'assistant', 'content': response.content})
         except Exception as e:
             print(f"Error generating response: {e}")

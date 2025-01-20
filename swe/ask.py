@@ -16,7 +16,6 @@ class SweAsk:
     def ask(self, question: str, verbose: bool = False) -> None:
         context_content = self.swe_context._get_context_content(verbose)
         chat_history = self.swe_context._load_chat_history()
-        chat_history.append({"role": "user", "content": question})
 
         formatted_history = "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
 
@@ -47,6 +46,7 @@ class SweAsk:
                 "question": question
             })
             print(f"\n\n{response.content}")
+            chat_history.append({"role": "user", "content": question})
             chat_history.append({'role': 'assistant', 'content': response.content})
         except Exception as e:
             print(f"Error generating response: {e}")
