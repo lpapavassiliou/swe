@@ -247,7 +247,6 @@ class SweContext:
         try:
             if os.path.exists(self.chat_file):
                 os.remove(self.chat_file)
-            os.system("clear")
             print("🎉 Start a new chat.")
         except IOError as e:
             print(f"Error clearing conversation history: {e}")

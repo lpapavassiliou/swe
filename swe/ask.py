@@ -13,7 +13,7 @@ class SweAsk:
         self.swe_context = swe_context
         self.llm = ChatOpenAI(model="gpt-4", temperature=0)
 
-    def ask(self, question: str, verbose: bool = False) -> None:
+    def ask(self, question: str, verbose: bool = False) -> str:
         context_content = self.swe_context._get_context_content(verbose)
         chat_history = self.swe_context._load_chat_history()
 
@@ -52,3 +52,5 @@ class SweAsk:
             print(f"Error generating response: {e}")
 
         self.swe_context._save_chat_history(chat_history)
+
+        return response.content
