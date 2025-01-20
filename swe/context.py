@@ -188,12 +188,12 @@ class SweContext:
         for file in data["context"]:
             print(f"    +  {file}")
 
-    def uninstall(self) -> None:
+    def delete_configuration_folder(self) -> None:
         if os.path.exists(self.swe_dir):
             shutil.rmtree(self.swe_dir)
-            print(f"✅ Uninstalled SWE coding agent.")
+            print(f"✅ Deleted configuration folder.")
         else:
-            print("SWE coding agent is not installed.")
+            print("There is no configuration folder to delete.")
 
     @staticmethod
     def _count_tokens(text, model='gpt-4'):
@@ -246,6 +246,7 @@ class SweContext:
             if os.path.exists(self.chat_file):
                 os.remove(self.chat_file)
             os.system("clear")
+            print("🎉 Start a new chat.")
         except IOError as e:
             print(f"Error clearing conversation history: {e}")
 

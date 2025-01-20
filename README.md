@@ -36,19 +36,19 @@ swe init
 - Add a file or directory to the context:
 
 ```bash
-swe look <path>
+swe add <path>
 ```
 
 - Remove a file or directory from the context:
 
 ```bash
-swe forget <path>
+swe rm <path>
 ```
 
 - Remove all files from the context:
 
 ```bash
-swe forget --all
+swe rm --all
 ```
 
 - Answer a question using the context:
