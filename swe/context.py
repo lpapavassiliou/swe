@@ -3,8 +3,7 @@ import os
 import shutil
 from typing import List, Dict, Optional
 import tiktoken
-import time
-import tqdm
+from swe.paths import PathHandler
 
 class SweContext:
     def __init__(self):
@@ -62,10 +61,11 @@ class SweContext:
                     print(f"Reading file: {file}")
                 with open(file, "r") as f:
                     file_content = f.read()
-                    context_content += f"\n\n### File: {file}\n\n{file_content}\n"
+                    file_title = PathHandler.get_path_to_display(file)
+                    context_content += f"\n\n### File: {file_title}\n\n{file_content}\n"
             except Exception as e:
                 print(f"Warning: Could not read {file}, removed from context.")
-                self.swe_context.remove(file)
+                self.remove_file(file)
         return context_content
 
     def _is_readable_file(self, file_path: str) -> bool:
@@ -123,11 +123,12 @@ class SweContext:
             return
             
         if os.path.isfile(path):
-            rel_path = os.path.relpath(path)
-            if rel_path not in data["context"] and self._is_readable_file(path):
-                data["context"].append(rel_path)
+            abs_path = os.path.abspath(path)
+            if abs_path not in data["context"] and self._is_readable_file(path):
+                data["context"].append(abs_path)
                 self._save_context(data)
-                print(f"Added {rel_path} to context.")
+                path_to_display = PathHandler.get_path_to_display(abs_path)
+                print(f"Added {path_to_display} to context.")
         else:
             added_files = 0
             for root, _, files in os.walk(path):
@@ -135,10 +136,10 @@ class SweContext:
                     continue
                 for file in files:
                     file_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(file_path)
-                    if not self._should_ignore(rel_path):
-                        if rel_path not in data["context"] and self._is_readable_file(file_path):
-                            data["context"].append(rel_path)
+                    abs_path = os.path.abspath(file_path)
+                    if not self._should_ignore(abs_path):
+                        if abs_path not in data["context"] and self._is_readable_file(file_path):
+                            data["context"].append(abs_path)
                             added_files += 1
             if added_files > 0:
                 self._save_context(data)
@@ -150,27 +151,28 @@ class SweContext:
         data = self._load_context()
         if data is None:
             return
-            
-        norm_path = os.path.normpath(path)
         
-        if os.path.isfile(norm_path):
-            if norm_path in data["context"]:
-                data["context"].remove(norm_path)
+        absolute_path = os.path.abspath(path)
+        path_to_display = PathHandler.get_path_to_display(absolute_path)
+        
+        if os.path.isfile(absolute_path):
+            if absolute_path in data["context"]:
+                data["context"].remove(absolute_path)
                 self._save_context(data)
-                print(f"Removed {norm_path} from context.")
+                print(f"Removed {path_to_display} from context.")
             else:
-                print(f"File {norm_path} not in context.")
+                print(f"File {path_to_display} not in context.")
         else:
             original_count = len(data["context"])
             data["context"] = [f for f in data["context"] 
-                             if not os.path.normpath(f).startswith(norm_path)]
+                             if not os.path.normpath(f).startswith(absolute_path)]
             removed_files = original_count - len(data["context"])
             self._save_context(data)
             
             if removed_files > 0:
-                print(f"Removed {removed_files} files from {norm_path} and its subdirectories.")
+                print(f"Removed {removed_files} files from {absolute_path} and its subdirectories.")
             else:
-                print(f"No files from {norm_path} were in context.")
+                print(f"No files from {absolute_path} were in context.")
 
     def remove_all_files(self) -> None:
         data = self._load_context()
@@ -186,7 +188,7 @@ class SweContext:
         if data is None:
             return
         for file in data["context"]:
-            print(f"    +  {file}")
+            print(f"    +  {PathHandler.get_path_to_display(file)}")
 
     def delete_configuration_folder(self) -> None:
         if os.path.exists(self.swe_dir):
