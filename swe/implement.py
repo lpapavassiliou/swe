@@ -18,7 +18,7 @@ class SweImplement:
 
     def __init__(self, swe_context: SweContext):
         self.swe_context = swe_context
-        self.llm = ChatOpenAI(model="gpt-4", temperature=0)
+        self.llm = ChatOpenAI(model="gpt-4o", temperature=0)
         self.plan_editor = PlanEditor()
 
     def implement(self, question: str, verbose: bool = False) -> None:

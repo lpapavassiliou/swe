@@ -198,7 +198,7 @@ class SweContext:
             print("There is no configuration folder to delete.")
 
     @staticmethod
-    def _count_tokens(text, model='gpt-4'):
+    def _count_tokens(text, model='gpt-4o'):
         # Load the appropriate tokenizer for the specified model
         encoding = tiktoken.encoding_for_model(model)
         # Encode the text to get tokens
@@ -206,7 +206,7 @@ class SweContext:
         # Return the number of tokens
         return len(tokens)
     
-    def _display_token_usage(self, model='gpt-4'):
+    def _display_token_usage(self, model='gpt-4o'):
         # Get terminal width for dynamic bar size
         terminal_width, _ = shutil.get_terminal_size()
         bar_width = max(30, terminal_width - 40)  # Adjust bar width based on terminal size
@@ -220,7 +220,7 @@ class SweContext:
 
         # Total tokens and max tokens
         total_tokens = context_tokens + chat_tokens
-        max_tokens = 8192  # GPT-4's token limit (adjustable based on the model)
+        max_tokens = 30000000
 
         # Calculate bar splits
         context_ratio = context_tokens / max_tokens
