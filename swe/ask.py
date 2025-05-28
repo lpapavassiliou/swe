@@ -11,7 +11,7 @@ class SweAsk:
 
     def __init__(self, swe_context: SweContext):
         self.swe_context = swe_context
-        self.llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     def ask(self, question: str, verbose: bool = False) -> str:
         context_content = self.swe_context._get_context_content(verbose)
