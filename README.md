@@ -1,6 +1,6 @@
 # Swe
 
-Swe is a coding agent that manages context and answers questions using Language Learning Models (LLMs). It uses the OpenAI GPT-4o model to generate responses based on the context provided.
+Swe is a coding agent that manages context and answers questions using Language Learning Models (LLMs). It uses the OpenAI GPT-4o-mini model to generate responses based on the context provided.
 
 ## Features
 
