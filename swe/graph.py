@@ -154,32 +154,32 @@ def create_implementation_graph(swe_context: SweContext) -> Graph:
     workflow = StateGraph(GraphState)
 
     # Add nodes
-    workflow.add_node("generate_plan", plan_node)
     workflow.add_node("gather_context", context_node)
+    workflow.add_node("generate_plan", plan_node)
     workflow.add_node("generate_implementation", implementation_node)
     workflow.add_node("write_file", file_writer_node)
     workflow.add_node("end", lambda x: x)  # End node that just returns the state
 
     # Define edges
-    workflow.add_edge("generate_plan", "gather_context")
-    workflow.add_edge("gather_context", "generate_implementation")
+    workflow.add_edge("gather_context", "generate_plan")
+    workflow.add_edge("generate_plan", "generate_implementation")
     workflow.add_edge("generate_implementation", "write_file")
     
     # Add conditional edge for next file
     def should_continue(state: GraphState) -> str:
-        return "generate_plan" if state["next_file"] != "None" else "end"
+        return "gather_context" if state.get("next_file") and state["next_file"] != "None" else "end"
     
     workflow.add_conditional_edges(
         "write_file",
         should_continue,
         {
-            "generate_plan": "generate_plan",
+            "gather_context": "gather_context",
             "end": "end"
         }
     )
 
     # Set entry point
-    workflow.set_entry_point("generate_plan")
+    workflow.set_entry_point("gather_context")
 
     return workflow.compile()
 
