@@ -22,23 +22,43 @@ class SweImplement:
         self.plan_editor = PlanEditor()
 
     def implement(self, question: str, verbose: bool = False) -> None:
-        # Ask to explain in a few sentences what files are going to be edited to implement the goal.
-        # The answer will be part of the chat history.
         swe_ask = SweAsk(self.swe_context)
-        preliminary_prompt = (
-            f"You are an expert software engineer. You are going to implement a goal: {question}. "
-            "List the steps to implement the goal: which files are going to be edited or created?"
-        )
-        plan = swe_ask.ask(preliminary_prompt)
+        plan = self._generate_plan(question, swe_ask)
         self.plan_editor.set_content(plan)
         self.swe_context.clear_conversation()
 
         context_content = self.swe_context._get_context_content(verbose)
         chat_history = self.swe_context._load_chat_history()
 
-        formatted_history = "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
+        formatted_history = self._format_chat_history(chat_history)
 
-        prompt_template = ChatPromptTemplate.from_template(
+        prompt_template = self._create_prompt_template()
+
+        if verbose:
+            self._print_verbose_info(prompt_template, question, plan, context_content, formatted_history)
+
+        try:
+            response = self._invoke_chain(prompt_template, question, plan, context_content, formatted_history)
+            self._update_chat_history(chat_history, question, response.content)
+            if verbose:
+                print(f"🤖 Assistant: {response.content}")
+        except Exception as e:
+            print(f"Error generating response: {e}")
+
+        self._process_response(response.content, question, verbose)
+
+    def _generate_plan(self, question: str, swe_ask: SweAsk) -> str:
+        preliminary_prompt = (
+            f"You are an expert software engineer. You are going to implement a goal: {question}. "
+            "List the steps to implement the goal: which files are going to be edited or created?"
+        )
+        return swe_ask.ask(preliminary_prompt)
+
+    def _format_chat_history(self, chat_history: List[Dict[str, str]]) -> str:
+        return "\n".join([f'{msg["role"].capitalize()}: {msg["content"]}' for msg in chat_history])
+
+    def _create_prompt_template(self) -> ChatPromptTemplate:
+        return ChatPromptTemplate.from_template(
             "You are an expert software engineer with the following task to implement: {goal}\n"
             "Here is the plan to implement the goal:\n"
             "{plan}\n"
@@ -55,53 +75,39 @@ class SweImplement:
             "}}\n\n"
         )
 
+    def _print_verbose_info(self, prompt_template: ChatPromptTemplate, goal: str, plan: str, context: str, history: str) -> None:
+        print("\n" + "=" * 80)
+        print(" " * 30 + "PROMPT TO LLM")
+        print("=" * 80 + "\n")
+        formatted_prompt = prompt_template.format_prompt(
+            goal=goal,
+            plan=plan,
+            context=context,
+            history=history if history != '' else '<no messages>'
+        ).to_string()
+        print(formatted_prompt)
+        print("\n" + "=" * 80 + "\n")
+
+    def _invoke_chain(self, prompt_template: ChatPromptTemplate, goal: str, plan: str, context: str, history: str):
         chain = prompt_template | self.llm
+        return chain.invoke({
+            "goal": goal,
+            "plan": plan,
+            "context": context,
+            "history": history if history != '' else '<no messages>'
+        })
 
-        if verbose:
-            print("\n" + "=" * 80)
-            print(" " * 30 + "PROMPT TO LLM")
-            print("=" * 80 + "\n")
-            formatted_prompt = prompt_template.format_prompt(
-                goal=question,
-                plan=plan,
-                context=context_content,
-                history=formatted_history if formatted_history != '' else '<no messages>'
-            ).to_string()
-            print(formatted_prompt)
-            print("\n" + "=" * 80 + "\n")
+    def _update_chat_history(self, chat_history: List[Dict[str, str]], question: str, response_content: str) -> None:
+        chat_history.append({"role": "user", "content": question})
+        chat_history.append({'role': 'assistant', 'content': response_content})
 
+    def _process_response(self, response_content: str, question: str, verbose: bool) -> None:
         try:
-            response = chain.invoke({
-                "goal": question,
-                "plan": plan,
-                "context": context_content,
-                "history": formatted_history if formatted_history != '' else '<no messages>'
-            })
-            chat_history.append({"role": "user", "content": question})
-            chat_history.append({'role': 'assistant', 'content': response.content})
-            if verbose:
-                print(f"🤖 Assistant: {response.content}")
-        except Exception as e:
-            print(f"Error generating response: {e}")
-
-        try:
-            implement_response = ImplementResponse.model_validate_json(response.content)
+            implement_response = ImplementResponse.model_validate_json(response_content)
             file_path = implement_response.file
             content = implement_response.content
             if file_path and content:
-                # Create subdirectories and file if they don't exist
-                if file_path != "None":
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    if not os.path.exists(file_path):
-                        open(file_path, "x").close()
-                # Create a backup of the file before writing
-                backup_dir = os.path.join(os.path.expanduser("~"), ".swe", "backup")
-                os.makedirs(backup_dir, exist_ok=True)
-                shutil.copy(file_path, backup_dir)
-                # Write the content to the file
-                with open(file_path, 'w') as f:
-                    f.write(content)
-                print(f"Implemented changes in {file_path}")
+                self._write_to_file(file_path, content)
                 if implement_response.next_file_to_implement and implement_response.next_file_to_implement != "None":
                     self.swe_context.add_file(implement_response.file)
                     print(f"Next file to implement: {implement_response.next_file_to_implement}")
@@ -112,5 +118,15 @@ class SweImplement:
                 print("Response does not contain 'file' and 'content' fields.")
         except json.JSONDecodeError:
             print("Response is not a valid JSON.")
-        
-        self.swe_context._save_chat_history(chat_history)
+
+    def _write_to_file(self, file_path: str, content: str) -> None:
+        if file_path != "None":
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            if not os.path.exists(file_path):
+                open(file_path, "x").close()
+        backup_dir = os.path.join(os.path.expanduser("~"), ".swe", "backup")
+        os.makedirs(backup_dir, exist_ok=True)
+        shutil.copy(file_path, backup_dir)
+        with open(file_path, 'w') as f:
+            f.write(content)
+        print(f"Implemented changes in {file_path}")
