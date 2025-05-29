@@ -248,8 +248,14 @@ class SweContext:
             if os.path.exists(self.chat_file):
                 os.remove(self.chat_file)
             print("🎉 Start a new chat.")
-        except IOError as e:
-            print(f"Error clearing conversation history: {e}")
+        except OSError as e:
+            print(f"Error clearing conversation: {e}")
+
+    def _update_chat_history(self, chat_history: List[Dict[str, str]], question: str, response_content: str) -> None:
+        """Appends the user question and assistant response to the chat history and saves it."""
+        chat_history.append({"role": "user", "content": question})
+        chat_history.append({'role': 'assistant', 'content': response_content})
+        self._save_chat_history(chat_history)
 
     def print_chat(self) -> None:
         chat_history = self._load_chat_history()
